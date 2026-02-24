@@ -4,10 +4,10 @@
   "description": "",
   "type": "module",
   "main": "src/index.js",
-  "scripts": {
-    "start": "node src/index.js",
-    "dev": "nodemon -r dotenv/config src/index.js"
-  },
+ "scripts": {
+  "start": "node -r dotenv/config src/index.js",
+  "dev": "nodemon -r dotenv/config src/index.js"
+},
   "keywords": [],
   "author": "",
   "license": "ISC",
