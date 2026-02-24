@@ -4,6 +4,7 @@ import { login, logout, stopLoading } from "../features/auth/authSlice"
 
 const AuthLoader = ({ children }) => {
   const dispatch = useDispatch()
+  const API_URL = "https://chatroom-web-x44l.onrender.com"
 
   useEffect(() => {
     const loadUser = async () => {
@@ -11,7 +12,7 @@ const AuthLoader = ({ children }) => {
 
       try {
         const res = await fetch(
-          "http://localhost:8000/api/v1/users/me",
+          `${API_URL}/api/v1/users/me`,
           { credentials: "include" }
         )
 
