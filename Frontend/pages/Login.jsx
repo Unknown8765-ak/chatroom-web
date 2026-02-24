@@ -15,13 +15,14 @@ function Login() {
     handleSubmit,
     formState: { errors }
   } = useForm()
+  const API_URL = import.meta.env.VITE_API_URL;
 
   const [serverError, setServerError] = useState("")
   const [loading, setLoading] = useState(false)
 
     const Loginsubmit = async (data)=>{
         try {
-            const res = await fetch("http://localhost:8000/api/v1/users/login" ,{
+            const res = await fetch(`${API_URL}/api/v1/users/login` ,{
                 method : 'POST',
                 credentials : "include",
                 headers: {

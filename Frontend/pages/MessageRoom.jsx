@@ -14,6 +14,7 @@ function MessageRoom() {
 
   const [activeUsers, setActiveUsers] = useState([]);
   const [showUsers, setShowUsers] = useState(false);
+  const API_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     if (!socket.connected) {
@@ -76,7 +77,7 @@ function MessageRoom() {
       if (!window.confirm("Are you sure you want to leave this room?")) return;
 
       const res = await fetch(
-        `http://localhost:8000/api/v1/rooms/${roomId}/leave`,
+        `${API_URL}/api/v1/rooms/${roomId}/leave`,
         {
           method: "POST",
           credentials: "include",
@@ -107,7 +108,7 @@ function MessageRoom() {
   const getActiveUsers = async () => {
     try {
       const res = await fetch(
-        `http://localhost:8000/api/v1/rooms/${roomId}/participants`,
+        `${API_URL}/api/v1/rooms/${roomId}/participants`,
         {
           method: "GET",
           credentials: "include",

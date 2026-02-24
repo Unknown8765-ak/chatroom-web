@@ -11,6 +11,7 @@ function JoinRoom() {
   const [error, setError] = useState("")
   const navigate = useNavigate()
   const dispatch = useDispatch()
+  const API_URL = import.meta.env.VITE_API_URL;
 
   const handleJoinRoom = async (e) => {
   e.preventDefault()
@@ -20,7 +21,7 @@ function JoinRoom() {
 
   try {
     const response = await fetch(
-      `http://localhost:8000/api/v1/rooms/${roomId}/join`,
+      `${API_URL}/api/v1/rooms/${roomId}/join`,
       {
         method: "POST",
         credentials: "include",

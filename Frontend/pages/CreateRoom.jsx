@@ -7,6 +7,7 @@ function CreateRoom() {
     const [roomId ,setRoomId] = useState("")
     const [roomName ,setRoomName] = useState("")
     const [loading, setLoading] = useState(false);
+    const API_URL = import.meta.env.VITE_API_URL;
 
     const generateRoomCode = ()=>{
         const code = Math.random()
@@ -30,7 +31,7 @@ function CreateRoom() {
     try {
         setLoading(true);
 
-        const res = await fetch("http://localhost:8000/api/v1/rooms/create",{
+        const res = await fetch(`${API_URL}/api/v1/rooms/create`,{
             method : "POST",
             credentials : "include",
             headers :{

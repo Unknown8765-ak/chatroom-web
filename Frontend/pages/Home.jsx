@@ -9,6 +9,7 @@ function Home() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
+  const API_URL = import.meta.env.VITE_API_URL;
   const { status: authStatus, loading } = useSelector(
     (state) => state.auth
   );
@@ -26,7 +27,7 @@ function Home() {
   async function handleLogout() {
     try {
       const response = await fetch(
-        "http://localhost:8000/api/v1/users/logout",
+        `${API_URL}/api/v1/users/logout`,
         {
           method: "POST",
           credentials: "include",

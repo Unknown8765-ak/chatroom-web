@@ -15,13 +15,13 @@ function Signup() {
     handleSubmit,
     formState: { errors }
   } = useForm()
-
+  const API_URL = import.meta.env.VITE_API_URL;
     const [loading, setLoading] = useState(false)
     const [error , setError]  = useState();
 const Signupsubmit = async (data)=>{
 
     try {
-       const res  = await fetch("http://localhost:8000/api/v1/users/register" ,{
+       const res  = await fetch(`${API_URL}/api/v1/users/register` ,{
         method : "POST",
         headers : {
              "Content-Type": "application/json",
