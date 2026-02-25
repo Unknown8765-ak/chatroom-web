@@ -13,6 +13,7 @@ const AuthLoader = ({ children }) => {
       try {
         const res = await fetch(
           `${API_URL}/api/v1/users/me`,
+          
           { credentials: "include" }
         )
 
