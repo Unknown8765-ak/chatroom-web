@@ -216,7 +216,6 @@ function MessageRoom() {
             {typingUser} is typing...
           </p>
         )}
-
         {messages.map((msg, index) => {
           if (msg.system) {
             return (
@@ -254,6 +253,7 @@ function MessageRoom() {
           );
         })}
       </div>
+      
 
       {/* INPUT */}
       <div className="backdrop-blur-xl bg-white/10 border-t border-white/20 
