@@ -47,7 +47,7 @@ function Signup() {
       // auto login after signup
       dispatch(login(result.user));
 
-      navigate("/create-room"); // better UX
+      navigate("/login");
     } catch (err) {
       setError(err.message);
     } finally {
