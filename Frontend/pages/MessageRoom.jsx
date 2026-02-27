@@ -291,7 +291,7 @@ function MessageRoom() {
 
 
   const handleShare = async () => {
-  const roomLink = `${window.location.origin}/rooms/${roomId}`;
+  const roomLink = `${window.location.origin}/room/${roomId}`;
 
   // Modern mobile share
   if (navigator.share) {
