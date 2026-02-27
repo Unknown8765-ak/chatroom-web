@@ -36,12 +36,13 @@ function Login() {
       });
 
       const result = await res.json();
+      console.log("LOGIN RESPONSE", result);
 
       if (!res.ok) {
         throw new Error(result.message);
       }
 
-      dispatch(login(result.user));
+     dispatch(login(result.data.user));
       navigate("/create-room");
     } catch (err) {
       setServerError(err.message);
