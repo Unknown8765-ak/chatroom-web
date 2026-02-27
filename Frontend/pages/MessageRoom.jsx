@@ -289,6 +289,28 @@ function MessageRoom() {
     setMessage("");
   };
 
+
+  const handleShare = async () => {
+  const roomLink = `${window.location.origin}/rooms/${roomId}`;
+
+  // Modern mobile share
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: "Join My Chat Room",
+        text: "Hey! Join my chat room 🚀",
+        url: roomLink,
+      });
+    } catch (err) {
+      console.log("Share cancelled");
+    }
+  } else {
+    // Fallback for desktop
+    await navigator.clipboard.writeText(roomLink);
+    alert("Room link copied to clipboard!");
+  }
+};
+
   const leaveRoom = async () => {
     try {
       if (!window.confirm("Leave this room?")) return;
@@ -346,7 +368,6 @@ function MessageRoom() {
   return (
     <div className="h-screen flex flex-col bg-linear-to-br from-indigo-600 via-purple-600 to-pink-500">
 
-      {/* HEADER */}
       <div className="backdrop-blur-xl bg-white/10 border-b border-white/20 
                       text-white px-6 py-3 flex items-center justify-between">
 
@@ -356,6 +377,12 @@ function MessageRoom() {
         </div>
 
         <div className="flex gap-2">
+          <button
+         onClick={handleShare}
+         className="bg-green-500 hover:bg-green-600 px-3 py-1.5 rounded-lg text-sm"
+        >
+           Share
+          </button>
           <button
             onClick={getActiveUsers}
             className="bg-blue-500 hover:bg-blue-600 px-3 py-1.5 rounded-lg text-sm"
