@@ -8,7 +8,7 @@ const router = Router()
 router.post("/create",verifyJWT , createRoom)
 router.post("/:roomId/join" , verifyJWT , joinRoom)
 router.post("/:roomId/leave", verifyJWT, leaveRoom);
-router.get("/my", verifyJWT, getMyRooms);
+router.get("/my-rooms", verifyJWT, getMyRooms);
 router.get("/:roomId/participants", verifyJWT, getRoomParticipants);
 
 export default router

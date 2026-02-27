@@ -344,7 +344,7 @@ function MessageRoom() {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500">
+    <div className="h-screen flex flex-col bg-linear-to-br from-indigo-600 via-purple-600 to-pink-500">
 
       {/* HEADER */}
       <div className="backdrop-blur-xl bg-white/10 border-b border-white/20 

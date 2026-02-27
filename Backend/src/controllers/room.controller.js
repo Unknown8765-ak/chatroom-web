@@ -142,14 +142,22 @@ const getRoomParticipants = asyncHandler(async (req, res) => {
 });
 
 const getMyRooms = asyncHandler(async (req, res) => {
-    const rooms = await Room.find({
-        participants: req.user._id,
-    }).sort({ updatedAt: -1 });
+  const rooms = await Room.find({ createdBy: req.user._id }).lean();
 
-    res.json({
-        success: true,
-        rooms,
-    });
+  const formattedRooms = rooms.map(room => ({
+    _id: room._id,
+    name: room.name,
+    roomId: room.roomId,
+    createdAt: room.createdAt,
+    totalMembers: room.participants.length,
+    isActive: room.isActive
+  }));
+
+  res.status(200).json({
+    success: true,
+    totalRooms: formattedRooms.length,
+    rooms: formattedRooms
+  });
 });
 export {
   createRoom,

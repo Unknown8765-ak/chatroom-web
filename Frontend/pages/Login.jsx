@@ -43,7 +43,7 @@ function Login() {
       }
 
      dispatch(login(result.data.user));
-      navigate("/create-room");
+      navigate("/my-rooms");
     } catch (err) {
       setServerError(err.message);
     } finally {

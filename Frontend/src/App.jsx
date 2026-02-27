@@ -9,6 +9,7 @@
   import CreateRoom from "../pages/CreateRoom"
   import JoinRoom from "../pages/JoinRoom"
   import MessageRoom from "../pages/MessageRoom"
+  import MyRooms from "../pages/MyRoom"
 
   function App() {
     return (
@@ -25,6 +26,7 @@
             <Route path="/create-room" element={<CreateRoom />} />
             <Route path="/join-room" element={<JoinRoom />} />
             <Route path="/room/:roomId" element={<MessageRoom />} />
+            <Route path="/my-rooms" element={<MyRooms />} />
           </Route>
         </Routes>
         </AuthLoader>
