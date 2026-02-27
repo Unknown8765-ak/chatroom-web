@@ -52,7 +52,7 @@ function MyRooms() {
       }
 
       setRooms((prev) =>
-        prev.filter((room) => room._id !== roomId)
+        prev.filter((room) => room.roomId !== roomId)
       );
     } catch (error) {
       console.error(error);
@@ -187,7 +187,7 @@ function MyRooms() {
                 <div className="flex justify-between mt-6">
                   <button
                     onClick={() =>
-                      navigate(`/room/${room._id}`)
+                      navigate(`/room/${room.roomId}`)
                     }
                     className="bg-blue-600 hover:bg-blue-700 
                     px-4 py-2 rounded-lg text-sm"
@@ -197,7 +197,7 @@ function MyRooms() {
 
                   <button
                     onClick={() =>
-                      handleDelete(room._id)
+                      handleDelete(room.roomId)
                     }
                     className="bg-red-600 hover:bg-red-700 
                     px-4 py-2 rounded-lg text-sm"
