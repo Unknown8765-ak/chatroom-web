@@ -159,10 +159,29 @@ const getMyRooms = asyncHandler(async (req, res) => {
     rooms: formattedRooms
   });
 });
+
+const deleteRoom = asyncHandler(async (req, res) => {
+  const { roomId } = req.params;
+
+  const deletedRoom = await Room.findOneAndDelete({
+    roomId,
+    createdBy: req.user._id,
+  });
+
+  if (!deletedRoom) {
+    throw new ApiError(404, "Room not found or not authorized");
+  }
+
+  res.status(200).json({
+    success: true,
+    message: "Room deleted successfully",
+  });
+});
 export {
   createRoom,
   joinRoom,
   leaveRoom,
   getMyRooms,
-  getRoomParticipants
+  getRoomParticipants,
+  deleteRoom
 }
