@@ -46,7 +46,7 @@ function MyRooms() {
           credentials: "include",
         }
       );
-
+      console.log(res)
       if (!res.ok) {
         throw new Error("Delete failed");
       }
