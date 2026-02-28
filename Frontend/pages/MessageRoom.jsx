@@ -295,163 +295,205 @@
 // export default MessageRoom;
 
 
-
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import io from "socket.io-client";
+import socket from "../socket/socket.js";
 
-const API_URL = "http://localhost:5000";
-const socket = io(API_URL, { withCredentials: true });
-
-const MessageRoom = () => {
+function MessageRoom() {
   const { roomId } = useParams();
   const navigate = useNavigate();
 
-  const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState("");
+  const [messages, setMessages] = useState([]);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [roomCreator, setRoomCreator] = useState(null);
+  const [typingUser, setTypingUser] = useState(null);
   const [activeUsers, setActiveUsers] = useState([]);
-  const [isRoomOwner, setIsRoomOwner] = useState(false);
+  const [showUsers, setShowUsers] = useState(false);
+  const [roomLoaded, setRoomLoaded] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
 
   const messagesEndRef = useRef(null);
+  const API_URL = import.meta.env.VITE_API_URL;
 
-  // Scroll to bottom
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  const isRoomOwner = useMemo(() => {
+    if (!currentUser || !roomCreator) return false;
+    return currentUser._id === roomCreator;
+  }, [currentUser, roomCreator]);
 
   useEffect(() => {
-    socket.emit("join-room", { roomId });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  useEffect(() => {
+    if (!socket.connected) socket.connect();
+
+    socket.emit("join-room", roomId);
+
+    socket.on("me", (user) => setCurrentUser(user));
+
+    socket.on("room-info", (data) => {
+      setRoomCreator(data.createdBy);
+      setRoomLoaded(true);
+    });
 
     socket.on("receive-message", (data) => {
       setMessages((prev) => [...prev, data]);
     });
 
-    socket.on("active-users", (users) => {
-      setActiveUsers(users);
+    socket.on("typing", (data) => {
+      setTypingUser(data.name);
+      setTimeout(() => setTypingUser(null), 2000);
+    });
+
+    socket.on("system-message", (data) => {
+      setMessages((prev) => [...prev, { ...data, system: true }]);
     });
 
     socket.on("room-deleted", () => {
-      alert("Room deleted by owner");
-      navigate("/");
+      alert("Room deleted by creator");
+      navigate("/my-rooms");
     });
 
     return () => {
-      socket.emit("leave-room", { roomId });
+      socket.emit("leave-room", roomId);
       socket.off();
     };
-  }, [roomId]);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+  }, [roomId, navigate]);
 
   const sendMessage = () => {
     if (!message.trim()) return;
-
     socket.emit("send-message", { roomId, message });
     setMessage("");
   };
 
-  const handleShare = () => {
-    const shareLink = `${window.location.origin}/room/${roomId}`;
-    navigator.clipboard.writeText(shareLink);
-    alert("Room link copied!");
+  const handleShare = async () => {
+    const roomLink = `${window.location.origin}/room/${roomId}`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "Join My Chat Room",
+          text: "Hey! Join my chat room 🚀",
+          url: roomLink,
+        });
+      } catch {}
+    } else {
+      await navigator.clipboard.writeText(roomLink);
+      alert("Room link copied!");
+    }
   };
 
-  const getActiveUsers = () => {
-    alert(activeUsers.join(", "));
+  const leaveRoom = async () => {
+    if (!window.confirm("Leave this room?")) return;
+
+    const res = await fetch(
+      `${API_URL}/api/v1/rooms/${roomId}/leave`,
+      { method: "POST", credentials: "include" }
+    );
+
+    const data = await res.json();
+    if (!res.ok) return alert(data.message);
+
+    socket.emit("leave-room", roomId);
+    navigate("/my-rooms");
   };
 
-  const leaveRoom = () => {
-    socket.emit("leave-room", { roomId });
-    navigate("/");
+  const getActiveUsers = async () => {
+    const res = await fetch(
+      `${API_URL}/api/v1/rooms/${roomId}/participants`,
+      { credentials: "include" }
+    );
+
+    const data = await res.json();
+    if (!res.ok) return alert(data.message);
+
+    setActiveUsers(data.activeParticipants);
+    setShowUsers(true);
   };
 
-  const deleteRoom = () => {
-    socket.emit("delete-room", { roomId });
-  };
+  const formatTime = (timestamp) =>
+    new Date(timestamp).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+  if (!roomLoaded) {
+    return (
+      <div className="h-screen flex items-center justify-center text-white">
+        Loading room...
+      </div>
+    );
+  }
 
   return (
-  <div className="h-screen flex bg-linear-to-br from-indigo-600 via-purple-600 to-pink-500">
+    <div className="h-screen flex flex-col bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500">
 
-    {/* LEFT SIDEBAR */}
-    {showSidebar && (
-      <div className="fixed inset-0 z-50 flex">
-        
-        <div className="w-64 backdrop-blur-xl bg-white/10 border-r border-white/20 text-white p-6">
-          
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="font-semibold text-lg">Room Menu</h3>
-            <button onClick={() => setShowSidebar(false)}>✖</button>
-          </div>
+      {/* RIGHT SIDEBAR */}
+      {showSidebar && (
+        <div className="fixed inset-0 z-50 flex justify-end">
+          <div className="w-64 backdrop-blur-xl bg-white/10 border-l border-white/20 text-white p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="font-semibold text-lg">Room Menu</h3>
+              <button onClick={() => setShowSidebar(false)}>✖</button>
+            </div>
 
-          <div className="flex flex-col gap-3">
-
-            <button
-              onClick={handleShare}
-              className="bg-green-500 hover:bg-green-600 px-3 py-2 rounded-lg text-sm"
-            >
-              Share
-            </button>
-
-            <button
-              onClick={getActiveUsers}
-              className="bg-blue-500 hover:bg-blue-600 px-3 py-2 rounded-lg text-sm"
-            >
-              Users
-            </button>
-
-            <button
-              onClick={leaveRoom}
-              className="bg-yellow-500 hover:bg-yellow-600 px-3 py-2 rounded-lg text-sm"
-            >
-              Leave
-            </button>
-
-            {isRoomOwner && (
+            <div className="flex flex-col gap-3">
               <button
-                onClick={() => socket.emit("delete-room", { roomId })}
-                className="bg-red-500 hover:bg-red-600 px-3 py-2 rounded-lg text-sm"
+                onClick={handleShare}
+                className="bg-green-500 hover:bg-green-600 px-3 py-2 rounded-lg text-sm"
               >
-                Delete
+                Share
               </button>
-            )}
 
+              <button
+                onClick={getActiveUsers}
+                className="bg-blue-500 hover:bg-blue-600 px-3 py-2 rounded-lg text-sm"
+              >
+                Users
+              </button>
+
+              <button
+                onClick={leaveRoom}
+                className="bg-yellow-500 hover:bg-yellow-600 px-3 py-2 rounded-lg text-sm"
+              >
+                Leave
+              </button>
+
+              {isRoomOwner && (
+                <button
+                  onClick={() => socket.emit("delete-room", { roomId })}
+                  className="bg-red-500 hover:bg-red-600 px-3 py-2 rounded-lg text-sm"
+                >
+                  Delete
+                </button>
+              )}
+            </div>
           </div>
+
+          <div
+            className="flex-1 bg-black/40"
+            onClick={() => setShowSidebar(false)}
+          />
         </div>
+      )}
 
-        {/* Click Outside to Close */}
-        <div
-          className="flex-1 bg-black/40"
-          onClick={() => setShowSidebar(false)}
-        />
-      </div>
-    )}
-
-    {/* MAIN CONTENT */}
-    <div className="flex flex-col flex-1">
-
-      {/* HEADER SAME DESIGN */}
-      <div className="backdrop-blur-xl bg-white/10 border-b border-white/20 
-                      text-white px-6 py-3 flex items-center justify-between">
-
+      {/* HEADER */}
+      <div className="backdrop-blur-xl bg-white/10 border-b border-white/20 text-white px-6 py-3 flex items-center justify-between">
         <div>
           <h3 className="font-semibold text-lg">💬 Messaging Room</h3>
           <p className="text-sm text-white/80">Room: {roomId}</p>
         </div>
 
-        {/* Hamburger Button */}
         <button
           onClick={() => setShowSidebar(true)}
           className="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg text-sm"
         >
           ☰ Menu
         </button>
-
       </div>
 
-      {/* ACTIVE USERS POPUP SAME */}
+      {/* ACTIVE USERS POPUP */}
       {showUsers && (
         <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
           <div className="bg-white w-80 rounded-xl p-4 shadow-2xl">
@@ -471,9 +513,8 @@ const MessageRoom = () => {
         </div>
       )}
 
-      {/* MESSAGES (UNCHANGED) */}
+      {/* MESSAGES */}
       <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3">
-
         {typingUser && (
           <p className="text-xs text-white/80 animate-pulse">
             {typingUser} is typing...
@@ -495,11 +536,11 @@ const MessageRoom = () => {
             <div key={index} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
               <div
                 className={`max-w-sm px-4 py-3 rounded-2xl text-sm shadow-lg
-                ${
-                  isMe
-                    ? "bg-white text-purple-700 rounded-br-none"
-                    : "bg-white/20 backdrop-blur-md text-white rounded-bl-none"
-                }`}
+                  ${
+                    isMe
+                      ? "bg-white text-purple-700 rounded-br-none"
+                      : "bg-white/20 backdrop-blur-md text-white rounded-bl-none"
+                  }`}
               >
                 <div className="flex justify-between text-xs opacity-70 mb-1">
                   <span>{msg.sender.name}</span>
@@ -510,14 +551,11 @@ const MessageRoom = () => {
             </div>
           );
         })}
-
         <div ref={messagesEndRef} />
       </div>
 
-      {/* INPUT SAME */}
-      <div className="backdrop-blur-xl bg-white/10 border-t border-white/20 
-                      px-6 py-3 flex gap-2">
-
+      {/* INPUT */}
+      <div className="backdrop-blur-xl bg-white/10 border-t border-white/20 px-6 py-3 flex gap-2">
         <input
           type="text"
           value={message}
@@ -527,9 +565,7 @@ const MessageRoom = () => {
             socket.emit("typing", { roomId });
           }}
           onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-          className="flex-1 px-4 py-2 rounded-full bg-white/20 text-white 
-                     placeholder-white/70 border border-white/30 
-                     focus:outline-none focus:ring-2 focus:ring-white"
+          className="flex-1 px-4 py-2 rounded-full bg-white/20 text-white placeholder-white/70 border border-white/30 focus:outline-none focus:ring-2 focus:ring-white"
         />
 
         <button
@@ -539,10 +575,8 @@ const MessageRoom = () => {
           Send
         </button>
       </div>
-
     </div>
-  </div>
-);
-};
+  );
+}
 
 export default MessageRoom;
