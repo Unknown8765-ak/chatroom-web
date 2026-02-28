@@ -328,7 +328,7 @@ function MessageRoom() {
       if (!res.ok) throw new Error(data.message);
 
       socket.emit("leave-room", roomId);
-      navigate("/");
+      navigate("/my-rooms");
     } catch (err) {
       alert(err.message);
     }
