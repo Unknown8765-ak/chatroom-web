@@ -32,6 +32,28 @@ function MyRooms() {
     fetchRooms();
   }, []);
 
+
+  const handleOpenRoom = async (roomId) => {
+  try {
+    const res = await fetch(
+      `${API_URL}/api/v1/rooms/${roomId}/join`,
+      {
+        method: "POST",
+        credentials: "include",
+      }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message);
+    }
+
+    navigate(`/room/${roomId}`);
+  } catch (err) {
+    alert(err.message);
+  }
+};
   const handleDelete = async (roomId) => {
     const confirmDelete = window.confirm(
       "Are you sure you want to delete this room?"
@@ -186,9 +208,7 @@ function MyRooms() {
 
                 <div className="flex justify-between mt-6">
                   <button
-                    onClick={() =>
-                      navigate(`/room/${room.roomId}`)
-                    }
+                    onClick={() => handleOpenRoom(room.roomId)}
                     className="bg-blue-600 hover:bg-blue-700 
                     px-4 py-2 rounded-lg text-sm"
                   >
