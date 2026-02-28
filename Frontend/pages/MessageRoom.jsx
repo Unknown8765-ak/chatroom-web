@@ -267,7 +267,7 @@ function MessageRoom() {
 
     const handleRoomDeleted = () => {
       alert("Room deleted by creator");
-      navigate("/");
+      navigate("/my-rooms");
     };
 
     socket.on("me", handleMe);
@@ -400,7 +400,8 @@ function MessageRoom() {
 
           {isRoomOwner && (
             <button
-              onClick={() => socket.emit("delete-room", { roomId })}
+              onClick={() => 
+                socket.emit("delete-room", { roomId })}
               className="bg-red-500 hover:bg-red-600 px-3 py-1.5 rounded-lg text-sm"
             >
               Delete
