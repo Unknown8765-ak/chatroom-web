@@ -373,105 +373,176 @@ const MessageRoom = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-gray-100 relative">
+  <div className="h-screen flex bg-linear-to-br from-indigo-600 via-purple-600 to-pink-500">
 
-      {/* Sidebar */}
-      {showSidebar && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex">
-          <div className="w-64 bg-white text-gray-800 p-5 shadow-2xl">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="font-semibold text-lg">Room Menu</h3>
-              <button onClick={() => setShowSidebar(false)}>✖</button>
-            </div>
-
-            <div className="flex flex-col gap-3">
-              <button
-                onClick={handleShare}
-                className="bg-green-500 text-white px-3 py-2 rounded-lg"
-              >
-                Share Room
-              </button>
-
-              <button
-                onClick={getActiveUsers}
-                className="bg-blue-500 text-white px-3 py-2 rounded-lg"
-              >
-                Active Users ({activeUsers.length})
-              </button>
-
-              <button
-                onClick={leaveRoom}
-                className="bg-yellow-500 text-white px-3 py-2 rounded-lg"
-              >
-                Leave Room
-              </button>
-
-              {isRoomOwner && (
-                <button
-                  onClick={deleteRoom}
-                  className="bg-red-500 text-white px-3 py-2 rounded-lg"
-                >
-                  Delete Room
-                </button>
-              )}
-            </div>
+    {/* LEFT SIDEBAR */}
+    {showSidebar && (
+      <div className="fixed inset-0 z-50 flex">
+        
+        <div className="w-64 backdrop-blur-xl bg-white/10 border-r border-white/20 text-white p-6">
+          
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="font-semibold text-lg">Room Menu</h3>
+            <button onClick={() => setShowSidebar(false)}>✖</button>
           </div>
 
-          {/* Click outside to close */}
-          <div
-            className="flex-1"
-            onClick={() => setShowSidebar(false)}
-          />
+          <div className="flex flex-col gap-3">
+
+            <button
+              onClick={handleShare}
+              className="bg-green-500 hover:bg-green-600 px-3 py-2 rounded-lg text-sm"
+            >
+              Share
+            </button>
+
+            <button
+              onClick={getActiveUsers}
+              className="bg-blue-500 hover:bg-blue-600 px-3 py-2 rounded-lg text-sm"
+            >
+              Users
+            </button>
+
+            <button
+              onClick={leaveRoom}
+              className="bg-yellow-500 hover:bg-yellow-600 px-3 py-2 rounded-lg text-sm"
+            >
+              Leave
+            </button>
+
+            {isRoomOwner && (
+              <button
+                onClick={() => socket.emit("delete-room", { roomId })}
+                className="bg-red-500 hover:bg-red-600 px-3 py-2 rounded-lg text-sm"
+              >
+                Delete
+              </button>
+            )}
+
+          </div>
+        </div>
+
+        {/* Click Outside to Close */}
+        <div
+          className="flex-1 bg-black/40"
+          onClick={() => setShowSidebar(false)}
+        />
+      </div>
+    )}
+
+    {/* MAIN CONTENT */}
+    <div className="flex flex-col flex-1">
+
+      {/* HEADER SAME DESIGN */}
+      <div className="backdrop-blur-xl bg-white/10 border-b border-white/20 
+                      text-white px-6 py-3 flex items-center justify-between">
+
+        <div>
+          <h3 className="font-semibold text-lg">💬 Messaging Room</h3>
+          <p className="text-sm text-white/80">Room: {roomId}</p>
+        </div>
+
+        {/* Hamburger Button */}
+        <button
+          onClick={() => setShowSidebar(true)}
+          className="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg text-sm"
+        >
+          ☰ Menu
+        </button>
+
+      </div>
+
+      {/* ACTIVE USERS POPUP SAME */}
+      {showUsers && (
+        <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
+          <div className="bg-white w-80 rounded-xl p-4 shadow-2xl">
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="font-semibold">
+                Active Users ({activeUsers.length})
+              </h3>
+              <button onClick={() => setShowUsers(false)}>✖</button>
+            </div>
+
+            {activeUsers.map((user) => (
+              <div key={user._id} className="p-2 bg-gray-100 rounded mb-2">
+                {user.name}
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
-      {/* Header (Layout Same) */}
-      <div className="bg-blue-600 text-white px-4 py-3 flex justify-between items-center">
-        <h2 className="font-semibold text-lg">
-          Messaging Room ({roomId})
-        </h2>
+      {/* MESSAGES (UNCHANGED) */}
+      <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3">
 
-        {/* Hamburger Button Instead of 4 Buttons */}
-        <button
-          onClick={() => setShowSidebar(true)}
-          className="bg-white/20 px-3 py-1.5 rounded-lg"
-        >
-          ☰
-        </button>
-      </div>
+        {typingUser && (
+          <p className="text-xs text-white/80 animate-pulse">
+            {typingUser} is typing...
+          </p>
+        )}
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
-        {messages.map((msg, index) => (
-          <div
-            key={index}
-            className="bg-white p-3 rounded-lg shadow-sm"
-          >
-            {msg.message}
-          </div>
-        ))}
+        {messages.map((msg, index) => {
+          if (msg.system) {
+            return (
+              <div key={index} className="text-center text-xs text-white/70">
+                {msg.text}
+              </div>
+            );
+          }
+
+          const isMe = msg.sender._id === currentUser?._id;
+
+          return (
+            <div key={index} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
+              <div
+                className={`max-w-sm px-4 py-3 rounded-2xl text-sm shadow-lg
+                ${
+                  isMe
+                    ? "bg-white text-purple-700 rounded-br-none"
+                    : "bg-white/20 backdrop-blur-md text-white rounded-bl-none"
+                }`}
+              >
+                <div className="flex justify-between text-xs opacity-70 mb-1">
+                  <span>{msg.sender.name}</span>
+                  {msg.createdAt && <span>{formatTime(msg.createdAt)}</span>}
+                </div>
+                <p>{msg.content}</p>
+              </div>
+            </div>
+          );
+        })}
+
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
-      <div className="bg-white p-4 flex gap-2 border-t">
+      {/* INPUT SAME */}
+      <div className="backdrop-blur-xl bg-white/10 border-t border-white/20 
+                      px-6 py-3 flex gap-2">
+
         <input
           type="text"
           value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          placeholder="Type your message..."
-          className="flex-1 border px-3 py-2 rounded-lg outline-none"
+          placeholder="Type a message..."
+          onChange={(e) => {
+            setMessage(e.target.value);
+            socket.emit("typing", { roomId });
+          }}
           onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+          className="flex-1 px-4 py-2 rounded-full bg-white/20 text-white 
+                     placeholder-white/70 border border-white/30 
+                     focus:outline-none focus:ring-2 focus:ring-white"
         />
+
         <button
           onClick={sendMessage}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg"
+          className="bg-white text-purple-700 px-6 rounded-full font-semibold hover:bg-purple-100"
         >
           Send
         </button>
       </div>
+
     </div>
-  );
+  </div>
+);
 };
 
 export default MessageRoom;
