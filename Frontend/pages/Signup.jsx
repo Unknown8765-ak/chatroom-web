@@ -97,7 +97,7 @@ function Signup() {
               type="email"
               placeholder="Enter your email"
               {...register("email", { required: "Email is required" })}
-              className="bg-white/20 text-black placeholder-white/70 border-white/30"
+              className="bg-white/20 text-black border-white/30"
             />
             {errors.email && (
               <p className="text-red-400 text-sm mt-1">{errors.email.message}</p>
