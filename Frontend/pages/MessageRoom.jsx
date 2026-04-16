@@ -318,8 +318,28 @@ function MessageRoom() {
 
   const isRoomOwner = useMemo(() => {
     if (!currentUser || !roomCreator) return false;
-    return currentUser._id === roomCreator;
+    return String(currentUser._id) === String(roomCreator);
   }, [currentUser, roomCreator]);
+
+useEffect(() => {
+  const fetchUser = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/v1/users/me`, {
+        credentials: "include",
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setCurrentUser(data.data);
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  fetchUser();
+}, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -330,7 +350,9 @@ function MessageRoom() {
 
     socket.emit("join-room", roomId);
 
-    socket.on("me", (user) => setCurrentUser(user));
+    socket.on("me", (user) => {
+  setCurrentUser((prev) => prev || user);
+});
 
     socket.on("room-info", (data) => {
       setRoomCreator(data.createdBy);
