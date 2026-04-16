@@ -13,7 +13,7 @@ export const disconnectSocket = () => {
 }
 
 export const joinRoom = (roomId) => {
-  socket.emit("join-room", {roomId})
+  socket.emit("join-room", roomId)
 }
 
 export const sendMessage = ({ roomId, message }) => {
